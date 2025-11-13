@@ -1,0 +1,20 @@
+{
+  "enabled": true,
+  "name": "Push to GitHub on Task Complete",
+  "description": "Automatically commits and pushes code changes to GitHub whenever a task is marked as complete",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      ".kiro/**/*",
+      "**/*.md",
+      "src/**/*.rs",
+      "Cargo.toml",
+      "Cargo.lock"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A task has been completed. Review the recent changes in the workspace, create a meaningful commit message that describes what was accomplished, then commit all changes and push them to the GitHub repository. Use git commands to stage all changes (git add .), commit with an appropriate message (git commit -m \"...\"), and push to the remote repository (git push)."
+  }
+}

@@ -45,28 +45,28 @@
     - Log errors and continue polling after failures
     - _Requirements: 2.4_
 
-- [ ] 4. Implement lyrics fetching and caching
+- [x] 4. Implement lyrics fetching and caching
 
-  - [ ] 4.1 Create LyricsFetcher struct with HTTP client
+  - [x] 4.1 Create LyricsFetcher struct with HTTP client
     - Initialize reqwest client with appropriate timeouts (10 seconds)
     - Define Lyrics and CachedLyrics data structures
     - _Requirements: 3.2_
-  - [ ] 4.2 Implement Lyrics.ovh API integration
+  - [x] 4.2 Implement Lyrics.ovh API integration
     - Create async function to query Lyrics.ovh API with artist and title
     - URL-encode artist and title for path parameters
     - Parse JSON response and extract lyrics field
     - Handle API errors gracefully (404 for not found, network errors)
     - _Requirements: 3.1, 3.2_
-  - [ ] 4.3 Implement in-memory LRU cache
+  - [x] 4.3 Implement in-memory LRU cache
     - Create HashMap-based cache with max 100 entries
     - Implement cache lookup by track ID
     - Implement LRU eviction when cache is full
     - _Requirements: 3.5_
-  - [ ] 4.4 Add lyrics unavailable handling
+  - [x] 4.4 Add lyrics unavailable handling
     - Return appropriate error when lyrics not found
     - Cache negative results to avoid repeated API calls
     - _Requirements: 3.4_
-  - [ ]\* 4.5 Implement Genius API as fallback source
+  - [ ] 4.5 Implement Genius API as fallback source
     - Add Genius API integration for when Lyrics.ovh fails
     - _Requirements: 3.2_
 

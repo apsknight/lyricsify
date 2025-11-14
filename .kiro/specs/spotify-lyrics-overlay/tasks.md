@@ -79,32 +79,32 @@
     - Handle missing or corrupted config files with defaults
     - _Requirements: 4.5, 7.3_
 
-- [ ] 6. Implement macOS overlay window
+- [x] 6. Implement macOS overlay window
 
-  - [ ] 6.1 Create OverlayWindow struct using objc2-app-kit
+  - [x] 6.1 Create OverlayWindow struct using objc2-app-kit
     - Initialize NSWindow with appropriate style mask using objc2 APIs
     - Set window level to NSFloatingWindowLevel for always-on-top
     - Configure window to be non-activating
     - Use Retained<NSWindow> for memory management
     - _Requirements: 4.3_
-  - [ ] 6.2 Configure window appearance
+  - [x] 6.2 Configure window appearance
     - Set window opacity to 0.8 (80%)
     - Add NSVisualEffectView for blur background effect
     - Set default size to 400x600 pixels
     - Add rounded corners with 12px radius
     - _Requirements: 4.1, 4.6_
-  - [ ] 6.3 Add NSTextView for lyrics display
+  - [x] 6.3 Add NSTextView for lyrics display
     - Create scrollable text view with appropriate styling
     - Set font to SF Pro Text, 14pt, white color
     - Configure line spacing to 1.5 and padding to 20px
     - _Requirements: 4.6_
-  - [ ] 6.4 Implement window positioning
+  - [x] 6.4 Implement window positioning
     - Set default position to top-right corner of screen using CGPoint
     - Make window draggable by implementing mouse event handlers with objc2
     - Load saved position from config on startup
     - Save position to config when window moves
     - _Requirements: 4.2, 4.4, 4.5_
-  - [ ] 6.5 Implement show/hide functionality
+  - [x] 6.5 Implement show/hide functionality
     - Add methods to show and hide window
     - Ensure window state persists in config
     - _Requirements: 5.3, 5.4_

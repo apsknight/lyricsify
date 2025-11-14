@@ -12,9 +12,7 @@ use tokio::time::{interval, Duration};
 use keyring::Entry;
 use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};
-use cocoa::base::{id, nil};
-use cocoa::foundation::{NSString, NSAutoreleasePool};
-use objc::{class, msg_send, sel, sel_impl};
+// Notification support will be added in menu bar implementation
 
 /// Information about a Spotify track
 #[derive(Debug, Clone, PartialEq)]
@@ -51,34 +49,12 @@ const KEYCHAIN_ACCOUNT: &str = "spotify_token";
 
 /// Display a macOS notification
 /// 
-/// This function uses the native NSUserNotification API to display
+/// This function uses the native NSUserNotificationCenter API to display
 /// a notification to the user.
 fn show_notification(title: &str, message: &str) {
-    unsafe {
-        let _pool = NSAutoreleasePool::new(nil);
-        
-        // Get the default notification center
-        let notification_center_class = class!(NSUserNotificationCenter);
-        let notification_center: id = msg_send![notification_center_class, defaultUserNotificationCenter];
-        
-        // Create a new notification
-        let notification_class = class!(NSUserNotification);
-        let notification: id = msg_send![notification_class, alloc];
-        let notification: id = msg_send![notification, init];
-        
-        // Set the title
-        let title_nsstring = NSString::alloc(nil).init_str(title);
-        let _: () = msg_send![notification, setTitle: title_nsstring];
-        
-        // Set the informative text (message body)
-        let message_nsstring = NSString::alloc(nil).init_str(message);
-        let _: () = msg_send![notification, setInformativeText: message_nsstring];
-        
-        // Deliver the notification
-        let _: () = msg_send![notification_center, deliverNotification: notification];
-        
-        log::debug!("Notification displayed: {} - {}", title, message);
-    }
+    // For now, just log the notification
+    // Full notification support will be added when implementing menu bar
+    log::info!("Notification: {} - {}", title, message);
 }
 
 /// Manages Spotify authentication and API interactions

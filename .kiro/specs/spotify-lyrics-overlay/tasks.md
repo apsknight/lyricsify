@@ -1,11 +1,11 @@
 # Implementation Plan
 
-- [x] 1. Set up project structure and dependencies
+- [ ] 1. Update project dependencies for modern macOS bindings
 
-  - Initialize Cargo project with required dependencies (rspotify, tokio, reqwest, serde, keyring, cocoa)
-  - Create module structure: spotify_client, lyrics_fetcher, ui_manager, app_core
-  - Define error types using thiserror for all modules
-  - Set up logging infrastructure
+  - Replace deprecated cocoa crate with objc2-app-kit and core-foundation
+  - Update Cargo.toml to use objc2 framework (objc2, objc2-app-kit, objc2-foundation)
+  - Remove cocoa and objc dependencies
+  - Update imports in spotify_client.rs to use objc2 for notifications
   - _Requirements: 6.3_
 
 - [x] 2. Implement Spotify authentication and credential management
@@ -66,9 +66,6 @@
     - Return appropriate error when lyrics not found
     - Cache negative results to avoid repeated API calls
     - _Requirements: 3.4_
-  - [ ] 4.5 Implement Genius API as fallback source
-    - Add Genius API integration for when Lyrics.ovh fails
-    - _Requirements: 3.2_
 
 - [ ] 5. Implement configuration management
 
@@ -84,10 +81,11 @@
 
 - [ ] 6. Implement macOS overlay window
 
-  - [ ] 6.1 Create OverlayWindow struct using cocoa bindings
-    - Initialize NSWindow with appropriate style mask (borderless, titled)
+  - [ ] 6.1 Create OverlayWindow struct using objc2-app-kit
+    - Initialize NSWindow with appropriate style mask using objc2 APIs
     - Set window level to NSFloatingWindowLevel for always-on-top
     - Configure window to be non-activating
+    - Use Retained<NSWindow> for memory management
     - _Requirements: 4.3_
   - [ ] 6.2 Configure window appearance
     - Set window opacity to 0.8 (80%)
@@ -101,8 +99,8 @@
     - Configure line spacing to 1.5 and padding to 20px
     - _Requirements: 4.6_
   - [ ] 6.4 Implement window positioning
-    - Set default position to top-right corner of screen
-    - Make window draggable by implementing mouse event handlers
+    - Set default position to top-right corner of screen using CGPoint
+    - Make window draggable by implementing mouse event handlers with objc2
     - Load saved position from config on startup
     - Save position to config when window moves
     - _Requirements: 4.2, 4.4, 4.5_
@@ -113,9 +111,10 @@
 
 - [ ] 7. Implement menu bar integration
 
-  - [ ] 7.1 Create MenuBar struct with NSStatusItem
-    - Initialize status item in system menu bar
+  - [ ] 7.1 Create MenuBar struct with NSStatusItem using objc2
+    - Initialize status item in system menu bar using objc2-app-kit
     - Set icon to musical note symbol (SF Symbols)
+    - Use Retained<NSStatusItem> for memory management
     - _Requirements: 5.1_
   - [ ] 7.2 Create dropdown menu with options
     - Add "Show Lyrics" / "Hide Lyrics" toggle menu item
@@ -163,11 +162,6 @@
     - Show "Lyrics not available" when lyrics not found
     - Show "Not authenticated" when credentials missing
     - _Requirements: 2.4, 3.4_
-  - [ ] 9.2 Add logging throughout application
-    - Log authentication events
-    - Log track changes and lyrics fetches
-    - Log errors with context
-    - _Requirements: 6.3_
 
 - [ ]\* 10. Performance optimization
   - [ ]\* 10.1 Implement debouncing for rapid track changes

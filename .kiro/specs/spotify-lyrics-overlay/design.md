@@ -55,7 +55,7 @@ Lyricsify is a native macOS application built in Rust that displays real-time sy
 - **Async Runtime**: Tokio (for concurrent operations)
 - **Spotify Integration**: rspotify (Rust Spotify API wrapper)
 - **HTTP Client**: reqwest (for lyrics API calls)
-- **macOS UI**: cocoa-rs (Objective-C bindings for native UI)
+- **macOS UI**: core-foundation-rs + objc2 (native macOS bindings for AppKit/Cocoa)
 - **Secure Storage**: keyring-rs (for OAuth token storage)
 - **Serialization**: serde + serde_json (for config and API responses)
 - **Error Handling**: thiserror (for structured error types)
@@ -161,9 +161,9 @@ struct CachedLyrics {
 
 ```rust
 pub struct OverlayWindow {
-    ns_window: Id<NSWindow>,
-    text_view: Id<NSTextView>,
-    current_position: NSPoint,
+    ns_window: Retained<NSWindow>,
+    text_view: Retained<NSTextView>,
+    current_position: CGPoint,
 }
 ```
 
@@ -190,8 +190,8 @@ pub struct OverlayWindow {
 - `show()`: Make window visible
 - `hide()`: Hide window (doesn't destroy)
 - `update_lyrics(text: &str)`: Update displayed text
-- `get_position() -> NSPoint`: Get current window position
-- `set_position(point: NSPoint)`: Move window to position
+- `get_position() -> CGPoint`: Get current window position
+- `set_position(point: CGPoint)`: Move window to position
 
 #### Design Decisions
 
@@ -199,6 +199,7 @@ pub struct OverlayWindow {
 - **Non-activating window**: Doesn't steal focus from other apps
 - **Persistent positioning**: Remembers user's preferred location across sessions
 - **Rounded corners**: 12px radius for polished appearance
+- **objc2 framework**: Modern, safe Objective-C bindings replacing deprecated cocoa-rs
 
 ### 4. Menu Bar Module
 
@@ -208,8 +209,8 @@ pub struct OverlayWindow {
 
 ```rust
 pub struct MenuBar {
-    status_item: Id<NSStatusItem>,
-    menu: Id<NSMenu>,
+    status_item: Retained<NSStatusItem>,
+    menu: Retained<NSMenu>,
     event_tx: mpsc::Sender<AppEvent>,
     overlay_visible: bool,
 }

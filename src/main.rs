@@ -1,4 +1,5 @@
 mod app_core;
+mod config;
 mod error;
 mod lyrics_fetcher;
 mod spotify_client;

@@ -67,13 +67,13 @@
     - Cache negative results to avoid repeated API calls
     - _Requirements: 3.4_
 
-- [ ] 5. Implement configuration management
+- [x] 5. Implement configuration management
 
-  - [ ] 5.1 Create AppConfig struct
+  - [x] 5.1 Create AppConfig struct
     - Define fields: window_position, overlay_visible, poll_interval_secs
     - Implement serde serialization/deserialization
     - _Requirements: 4.5_
-  - [ ] 5.2 Implement config file persistence
+  - [x] 5.2 Implement config file persistence
     - Create config directory at ~/Library/Application Support/com.lyricsify/
     - Implement save_config and load_config functions using serde_json
     - Handle missing or corrupted config files with defaults

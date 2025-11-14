@@ -131,25 +131,25 @@
     - Update menu item text dynamically ("Show" vs "Hide")
     - _Requirements: 5.5_
 
-- [ ] 8. Implement application core and event loop
+- [x] 8. Implement application core and event loop
 
-  - [ ] 8.1 Create App struct coordinating all components
+  - [x] 8.1 Create App struct coordinating all components
     - Initialize SpotifyClient, LyricsFetcher, and UIManager
     - Set up mpsc channels for event communication
     - Load configuration on startup
     - _Requirements: All_
-  - [ ] 8.2 Implement main event loop with tokio
+  - [x] 8.2 Implement main event loop with tokio
     - Use tokio::select! to handle multiple event sources
     - Handle TrackChanged events by fetching lyrics
     - Handle LyricsRetrieved events by updating UI
     - Handle ToggleOverlay events from menu bar
     - _Requirements: 2.2, 3.1_
-  - [ ] 8.3 Implement graceful shutdown
+  - [x] 8.3 Implement graceful shutdown
     - Handle Quit events from menu bar
     - Save configuration before exit
     - Clean up background tasks and resources
     - _Requirements: 7.2, 7.3, 7.4_
-  - [ ] 8.4 Wire up complete flow from track change to lyrics display
+  - [x] 8.4 Wire up complete flow from track change to lyrics display
     - Ensure track polling triggers lyrics fetch
     - Ensure fetched lyrics update overlay window
     - Verify error states display appropriate messages

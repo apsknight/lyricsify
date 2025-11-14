@@ -155,9 +155,9 @@
     - Verify error states display appropriate messages
     - _Requirements: 2.2, 3.1, 3.3, 3.4_
 
-- [ ] 9. Add error handling and user feedback
+- [x] 9. Add error handling and user feedback
 
-  - [ ] 9.1 Implement error display in overlay
+  - [x] 9.1 Implement error display in overlay
     - Show "Unable to connect to Spotify" for API errors
     - Show "Lyrics not available" when lyrics not found
     - Show "Not authenticated" when credentials missing

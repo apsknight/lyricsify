@@ -134,7 +134,7 @@ impl OverlayWindow {
             }
 
             // Set initial text
-            tv.setString(ns_string!("Waiting for lyrics..."));
+            tv.setString(ns_string!("Initializing..."));
 
             tv
         };

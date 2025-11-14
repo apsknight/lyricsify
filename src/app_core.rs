@@ -95,6 +95,10 @@ impl App {
             self.spotify_client.start_polling(self.event_tx.clone());
         } else {
             log::warn!("Not authenticated with Spotify. Please authenticate from the menu bar.");
+            // Display "Not authenticated" message in overlay
+            if let Some(overlay) = self.ui_manager.overlay_window() {
+                overlay.update_lyrics("Not authenticated")?;
+            }
         }
 
         // Update menu bar visibility state based on config
@@ -152,6 +156,15 @@ impl App {
             track.artists.join(", ")
         );
 
+        // Check if authenticated
+        if !self.spotify_client.is_authenticated().await {
+            log::warn!("Not authenticated, cannot fetch lyrics");
+            if let Some(overlay) = self.ui_manager.overlay_window() {
+                overlay.update_lyrics("Not authenticated")?;
+            }
+            return Ok(());
+        }
+
         // Fetch lyrics for the new track
         let artist = track.artists.first().unwrap_or(&String::new()).clone();
         let lyrics = self
@@ -180,7 +193,7 @@ impl App {
                 }
                 None => {
                     log::info!("No lyrics available for this track");
-                    overlay.update_lyrics("Lyrics not available for this track")?;
+                    overlay.update_lyrics("Lyrics not available")?;
                 }
             }
         }
@@ -240,7 +253,7 @@ impl App {
 
         // Display error in overlay
         if let Some(overlay) = self.ui_manager.overlay_window() {
-            overlay.update_lyrics(&format!("Unable to connect to Spotify\n\n{}", error))?;
+            overlay.update_lyrics("Unable to connect to Spotify")?;
         }
 
         Ok(())

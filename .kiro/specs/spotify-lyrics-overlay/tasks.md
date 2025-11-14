@@ -109,24 +109,24 @@
     - Ensure window state persists in config
     - _Requirements: 5.3, 5.4_
 
-- [ ] 7. Implement menu bar integration
+- [x] 7. Implement menu bar integration
 
-  - [ ] 7.1 Create MenuBar struct with NSStatusItem using objc2
+  - [x] 7.1 Create MenuBar struct with NSStatusItem using objc2
     - Initialize status item in system menu bar using objc2-app-kit
     - Set icon to musical note symbol (SF Symbols)
     - Use Retained<NSStatusItem> for memory management
     - _Requirements: 5.1_
-  - [ ] 7.2 Create dropdown menu with options
+  - [x] 7.2 Create dropdown menu with options
     - Add "Show Lyrics" / "Hide Lyrics" toggle menu item
     - Add "Authenticate Spotify" menu item (conditional on auth state)
     - Add "Quit" menu item
     - _Requirements: 5.2, 7.1_
-  - [ ] 7.3 Implement menu item actions
+  - [x] 7.3 Implement menu item actions
     - Connect toggle item to show/hide overlay functionality
     - Connect authenticate item to OAuth flow
     - Connect quit item to graceful shutdown
     - _Requirements: 5.3, 5.4, 7.2_
-  - [ ] 7.4 Implement visual state indicators
+  - [x] 7.4 Implement visual state indicators
     - Change icon color based on overlay visibility (colored when visible, gray when hidden)
     - Update menu item text dynamically ("Show" vs "Hide")
     - _Requirements: 5.5_

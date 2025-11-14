@@ -1,13 +1,17 @@
+use crate::app_core::AppEvent;
 use crate::config::AppConfig;
 use crate::error::{LyricsifyError, Result};
 use objc2::rc::Retained;
+use objc2::{declare_class, msg_send_id, mutability, ClassType, DeclaredClass};
 use objc2_app_kit::{
-    NSBackingStoreType, NSColor, NSFont, NSScreen, NSTextView, NSVisualEffectView,
-    NSVisualEffectBlendingMode, NSVisualEffectMaterial, NSVisualEffectState, NSWindow,
-    NSWindowCollectionBehavior, NSWindowStyleMask, NSWindowTitleVisibility,
+    NSBackingStoreType, NSColor, NSFont, NSMenu, NSMenuItem, NSScreen, NSStatusBar, NSStatusItem,
+    NSTextView, NSVisualEffectView, NSVisualEffectBlendingMode, NSVisualEffectMaterial,
+    NSVisualEffectState, NSWindow, NSWindowCollectionBehavior, NSWindowStyleMask,
+    NSWindowTitleVisibility,
 };
-use objc2_foundation::{ns_string, CGPoint, CGRect, CGSize, MainThreadMarker, NSString};
+use objc2_foundation::{ns_string, CGPoint, CGRect, CGSize, MainThreadMarker, NSObject, NSString};
 use std::sync::{Arc, Mutex};
+use tokio::sync::mpsc;
 
 /// Manages the overlay window for displaying lyrics
 pub struct OverlayWindow {
@@ -141,9 +145,7 @@ impl OverlayWindow {
         }
 
         // Set effect view as content view
-        unsafe {
-            window.setContentView(Some(&effect_view));
-        }
+        window.setContentView(Some(&effect_view));
 
         // Set window visibility based on config
         if config.overlay_visible {
@@ -247,5 +249,195 @@ impl UIManager {
 
     pub fn overlay_window_mut(&mut self) -> Option<&mut OverlayWindow> {
         self.overlay_window.as_mut()
+    }
+}
+
+// Declare a custom delegate class for handling menu actions
+struct MenuBarDelegateIvars {
+    event_tx: mpsc::UnboundedSender<AppEvent>,
+}
+
+declare_class!(
+    struct MenuBarDelegate;
+
+    unsafe impl ClassType for MenuBarDelegate {
+        type Super = NSObject;
+        type Mutability = mutability::MainThreadOnly;
+        const NAME: &'static str = "MenuBarDelegate";
+    }
+
+    impl DeclaredClass for MenuBarDelegate {
+        type Ivars = MenuBarDelegateIvars;
+    }
+
+    unsafe impl MenuBarDelegate {
+        #[method(toggleOverlay:)]
+        fn toggle_overlay(&self, _sender: *const NSMenuItem) {
+            let _ = self.ivars().event_tx.send(AppEvent::ToggleOverlay);
+        }
+
+        #[method(authenticate:)]
+        fn authenticate(&self, _sender: *const NSMenuItem) {
+            let _ = self.ivars().event_tx.send(AppEvent::Authenticate);
+        }
+
+        #[method(quit:)]
+        fn quit(&self, _sender: *const NSMenuItem) {
+            let _ = self.ivars().event_tx.send(AppEvent::Quit);
+        }
+    }
+);
+
+impl MenuBarDelegate {
+    fn new(event_tx: mpsc::UnboundedSender<AppEvent>, mtm: MainThreadMarker) -> Retained<Self> {
+        let this = mtm.alloc::<Self>();
+        let this = this.set_ivars(MenuBarDelegateIvars { event_tx });
+        unsafe { msg_send_id![super(this), init] }
+    }
+}
+
+/// Manages the menu bar status item and dropdown menu
+pub struct MenuBar {
+    status_item: Retained<NSStatusItem>,
+    menu: Retained<NSMenu>,
+    toggle_item: Retained<NSMenuItem>,
+    auth_item: Retained<NSMenuItem>,
+    delegate: Retained<MenuBarDelegate>,
+    overlay_visible: Arc<Mutex<bool>>,
+    authenticated: Arc<Mutex<bool>>,
+}
+
+impl MenuBar {
+    /// Create a new menu bar with status item
+    pub fn new(event_tx: mpsc::UnboundedSender<AppEvent>) -> Result<Self> {
+        let mtm = unsafe { MainThreadMarker::new_unchecked() };
+
+        // Create the delegate
+        let delegate = MenuBarDelegate::new(event_tx, mtm);
+
+        // Get the system status bar and create status item
+        let status_item = unsafe {
+            let status_bar = NSStatusBar::systemStatusBar();
+            status_bar.statusItemWithLength(-1.0) // NSVariableStatusItemLength = -1.0
+        };
+
+        // Create the menu
+        let menu = NSMenu::new(mtm);
+
+        // Set the icon to a musical note symbol
+        if let Some(button) = unsafe { status_item.button(mtm) } {
+            // Use a simple text-based icon for now
+            // SF Symbols require newer objc2-app-kit APIs
+            unsafe {
+                button.setTitle(ns_string!("♪"));
+            }
+        }
+
+        // Create menu items with actions
+        // 1. Toggle Lyrics menu item
+        let toggle_item = unsafe {
+            let item = NSMenuItem::initWithTitle_action_keyEquivalent(
+                mtm.alloc::<NSMenuItem>(),
+                ns_string!("Show Lyrics"),
+                Some(objc2::sel!(toggleOverlay:)),
+                ns_string!(""),
+            );
+            item.setTarget(Some(&delegate));
+            item
+        };
+
+        // 2. Authenticate Spotify menu item
+        let auth_item = unsafe {
+            let item = NSMenuItem::initWithTitle_action_keyEquivalent(
+                mtm.alloc::<NSMenuItem>(),
+                ns_string!("Authenticate Spotify"),
+                Some(objc2::sel!(authenticate:)),
+                ns_string!(""),
+            );
+            item.setTarget(Some(&delegate));
+            item
+        };
+
+        // 3. Quit menu item
+        let quit_item = unsafe {
+            let item = NSMenuItem::initWithTitle_action_keyEquivalent(
+                mtm.alloc::<NSMenuItem>(),
+                ns_string!("Quit"),
+                Some(objc2::sel!(quit:)),
+                ns_string!("q"),
+            );
+            item.setTarget(Some(&delegate));
+            item
+        };
+
+        // Add items to menu
+        menu.addItem(&toggle_item);
+        menu.addItem(&auth_item);
+        menu.addItem(
+            &NSMenuItem::separatorItem(mtm), // Add separator before quit
+        );
+        menu.addItem(&quit_item);
+
+        // Attach the menu to the status item
+        unsafe {
+            status_item.setMenu(Some(&menu));
+        }
+
+        Ok(Self {
+            status_item,
+            menu,
+            toggle_item,
+            auth_item,
+            delegate,
+            overlay_visible: Arc::new(Mutex::new(false)),
+            authenticated: Arc::new(Mutex::new(false)),
+        })
+    }
+
+    /// Update the visibility state of the overlay
+    pub fn update_visibility_state(&self, visible: bool) -> Result<()> {
+        if let Ok(mut vis) = self.overlay_visible.lock() {
+            *vis = visible;
+        }
+
+        // Update menu item text
+        let title = if visible {
+            ns_string!("Hide Lyrics")
+        } else {
+            ns_string!("Show Lyrics")
+        };
+        unsafe {
+            self.toggle_item.setTitle(title);
+        }
+
+        // Update icon appearance based on visibility
+        // For now, we'll keep the same icon but could change color in future
+        // when SF Symbols support is available in objc2-app-kit
+
+        Ok(())
+    }
+
+    /// Update the authentication state
+    pub fn update_auth_state(&self, authenticated: bool) -> Result<()> {
+        if let Ok(mut auth) = self.authenticated.lock() {
+            *auth = authenticated;
+        }
+
+        // Show/hide the authenticate menu item based on auth state
+        unsafe {
+            self.auth_item.setHidden(authenticated);
+        }
+
+        Ok(())
+    }
+
+    /// Get the current visibility state
+    pub fn is_overlay_visible(&self) -> bool {
+        self.overlay_visible.lock().map(|v| *v).unwrap_or(false)
+    }
+
+    /// Get the current authentication state
+    pub fn is_authenticated(&self) -> bool {
+        self.authenticated.lock().map(|a| *a).unwrap_or(false)
     }
 }
